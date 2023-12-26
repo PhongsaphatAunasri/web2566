@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+</head>
+
+<body>
+    <a-scene>
+
+        <a-assets>
+            <img id="my-image" src="view2.jpg">
+            <img id="texture" src="image.jpg">
+        </a-assets>
+        <!--<a-image src="#my-image"></a-image>-->
+
+
+        <!--<a-box position="-2 0.5 -3" rotation="0 45 0" color="#9CC3f9"></a-box>-->
+        <a-box position="2 0.5 -3" rotation="0 45 0" src="#texture"
+            animation="property: position; to: 2 0.5 -3; loop: true; dur: 2000; easing: linear;"
+            animation__rotation="property: rotation; to: 0 405 0; loop: true; dur: 3000; easing: linear;"
+            animation__left="property: position; to: 2 0.5 -3; dur: 2000; easing: linear; dir: alternate; loop: true;"
+            animation__right="property: position; to: -2 0.5 -3; dur: 2000; easing: linear; dir: alternate; loop: true;">
+
+        </a-box>
+        <!-- <a-sphere position="0 1.25 -6" radius="1.25" color="#EF9D5E"></a-sphere>-->
+        <!-- <a-cylinder position="1 0.75 -4" radius="0.5" height="1.5" color="#0FC99D"></a-cylinder>-->
+        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#000009"></a-plane>
+        <a-sky src="#my-image" rotation="0 -90 0"></a-sky>
+        <a-text value="Work 2" color="#ffffff" position="-1 8 -10" scale="4 4 4"></a-text>
+        <a-text value="Phongsaphat Aunasri" color="#ffffff" position="-3 7 -10" scale="4 4 4"></a-text>
+        <a-text value="643020627-4" color="#ffffff" position="-2 6 -10" scale="4 4 4"></a-text>
+    </a-scene>
+</body>
+
+</html>
