@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>My first Vue page</title>
+</head>
+
+<body>
+
+    <div id="app">
+        <v-app>
+            <v-container>
+                <v-card style='max-width: 800px;'>
+                    <v-card-title class="bg-orange-darken-4">{{title}}</v-card-title>
+                    <v-card-text class="pa-4">
+                        <template v-if="state==0">
+
+                            <v-btn @click="shuffle()">เริ่มเล่น</v-btn>
+                        </template>
+                        <template v-if="state==1">
+                            <v-row>
+                                <v-col v-for="(c,i) of cards" cols="2" class="text-center">
+                                    <img v-if="c.s==0" src="work3/0.png" width='80' height='80' @click="imgclick(c)">
+                                    <img v-if="c.s==1" src="'work3/' +c.t+'.png'" width='80' height='80'>
+                                </v-col>
+                            </v-row>
+                            <v-btn @click="stopGame()">เลิกเล่น</v-btn>
+                        </template>
+                        <template v-if="state==2">
+                            <h1>คุณชนะแล้ว เก่งมาก</h1>
+                            <br />
+                            <v-btn @click="state=0">ตกลง</v-btn>
+                        </template>
+                    </v-card-text>
+                    <v-bottom-navigation class="bg-grey">
+                        <div class="text-body-1">{{footer}}</div>
+                    </v-bottom-navigation>
+                </v-card>
+            </v-container>
+        </v-app>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.css" rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.js"></script>
+    <script>
+        const vuetify = Vuetify.createVuetify();
+        const app = Vue.createApp({
+            data() {
+                return {
+                    title: 'Work 3 : เกมจับคู่ภาพ โดยใช้ VueJS',
+                    footer: '643020627-4 นายพงศพัศ อุณาศรี',
+                    state: 0,
+                    cards: [],
+                    cards_opened: [],
+                    cards_count: 0,
+
+                };
+            },
+            methods: {
+                shuffle() {
+                    this.state = 1;
+                    this.cards = [];
+                    this.cards_opened = [];
+                    this.cards_count = 36;
+
+                    for (var i = 1; i <= 18; i++) {
+                        this.cards.push({ t: i, s: 0 });
+                        this.cards.push({ t: i, s: 0 });
+                    }
+                    for (var i = 1; i < 100; i++) {
+                        var a = Math.round(Math.random() * 35);
+                        var b = Math.round(Math.random() * 35);
+                        var t = this.cards[a];
+                        this.cards[a] = this.cards[b];
+                        this.cards[b] = t;
+                    }
+                },
+                imgclick(c) {
+                    if (this.cards_opened.length < 2) {
+                        c.s = 1;
+                        this.cards_opened.push(c);
+
+                    }
+                    if (this.cards_opened.length == 2) {
+                        setTimeout(this.checkCard, 1000);
+                    }
+                },
+                checkCard() {
+                    var a = this.cards_opened[0];
+                    var b = this.cards_opened[1];
+                    this.cards_opened = [];
+                    if (a.t == b.t) {
+                        a.s = 2;
+                        b.s = 2
+                        this.cards_count -= 2;
+                    } else {
+                        a.s = 0;
+                        b.s = 0;
+                    }
+                    if (this.cards_count == 0) {
+                        this.state = 2;
+                    }
+                },
+                stopGame() {
+                    this.state = 0;
+                }
+            },
+
+
+        });
+
+        app.use(vuetify).mount('#app');
+
+    </script>
+</body>
+
+</html>
