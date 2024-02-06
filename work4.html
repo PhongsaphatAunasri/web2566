@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+
+<body>
+    <div id="myapp" class="container p-4"></div>
+    <script type="text/babel">
+        class App extends React.Component {
+            constructor() {
+                super();
+                this.state = {
+                    scene: 0,
+                    cards: [],
+                }
+            }
+
+            title = <div><b>Work4 :</b> เกมจับคู่ภาพ ด้วย ReactJS</div>;
+            footer = <div>By 643020627-4 นายพงศพัศ อุณาศรี <br />
+                College of Computing, Khon Kaen University </div>;
+            cardsOpened = [];
+
+
+            render() {
+                var sc = <MenuScene app={this} />
+                if (this.state.scene == 1) sc = <GameScene app={this} />
+                if (this.state.scene == 2) sc = <WinScene app={this} />
+                return <div className="card">
+                    <div className="card-header">{this.title}</div>
+                    <div className="card-body">{sc}</div>
+                    <div className="card-footer">{this.footer}</div>
+                </div>
+
+            }
+            start() {
+                this.cardsCount = 36;
+                this.cardsOpened = [];
+                this.setState({ scene: 1, cards: this.shuffle(), cardsCount: 36 });
+            }
+
+            shuffle() {
+                var cards = [];
+                for (var i = 1; i <= 18; i++) {
+                    cards.push(<Card t={i} app={this} />); // t คือ index ของภาพ
+                    cards.push(<Card t={i} app={this} />);
+                }
+                for (var i = 1; i < 100; i++) {
+                    var a = Math.round(Math.random() * 35);
+                    var b = Math.round(Math.random() * 35);
+                    var t = cards[a];
+                    cards[a] = cards[b];
+                    cards[b] = t;
+                }
+                return cards;
+            }
+            checkCard() {
+                var a = this.cardsOpened[0];
+                var b = this.cardsOpened[1];
+                this.cardsOpened = [];
+                if (a.props.t === b.props.t) {
+                    a.setState({ s: 2 });
+                    b.setState({ s: 2 });
+                    this.setState({ cardsCount: this.state.cardsCount - 2 }, () => {
+                        if (this.state.cardsCount === 0) {
+                            this.setState({ scene: 2 }); // Move to win scene when all matched
+                        }
+                    });
+                } else {
+                    a.setState({ s: 0 });
+                    b.setState({ s: 0 });
+                }
+            }
+
+
+
+        }
+        class Card extends React.Component {
+            state = { s: 0 };
+            render() {
+                var cardClass = "col-2";
+                if (this.state.s === 2) {
+                    cardClass += " fade-out"; // Add the fade-out class when the card is matched
+                }
+        
+                var imgSrc = this.state.s ? `work4/${this.props.t}.png` : "work4/0.png";
+                return (
+                    <div className={cardClass} onClick={this.imgClick}>
+                        <img src={imgSrc} width="100%" alt="" />
+                    </div>
+                );
+            }
+            imgClick = () => {
+                var app = this.props.app;
+                if (app.cardsOpened.length < 2 && this.state.s === 0) {
+                    app.cardsOpened.push(this);
+                    this.setState({ s: 1 });
+                    if (app.cardsOpened.length === 2) {
+                        setTimeout(() => app.checkCard(), 1000); // Reduced timeout for a faster reaction
+                    }
+                }
+            };
+
+
+
+
+        }
+
+
+        function MenuScene({ app }) {
+            return (
+                <div>
+                    <a href="index.html" className="btn btn-primary mx-2">
+                        กลับหน้าหลัก
+                    </a>
+                    <button
+                        className="btn btn-primary mx-2"
+                        onClick={() => app.start()}
+                    > เริ่มเล่น </button>
+                </div>
+            );
+        }
+        function GameScene({ app }) {
+            return (
+                <div>
+                    จำนวนภาพที่เหลือ {app.state.cardsCount} ใบ
+                    <div className="row p-2">{app.state.cards}</div>
+                    <button
+                        className="btn btn-danger mx-2"
+                        onClick={() => app.setState({ scene: 0 })}
+                    >
+                        เลิกเล่น
+                    </button>
+                </div>
+            );
+
+
+
+        }
+        function WinScene({ app }) {
+            return (
+                <div>
+                    ยินดีด้วยคุณชนะแล้ว
+                    <button className="btn btn-danger mx-2"
+                        onClick={() => app.setState({ scene: 0 })}>
+                        ตกลง
+                    </button>
+                </div>
+            );
+        }
+
+        const container = document.getElementById('myapp');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+    <style>
+        .fade-out {
+            animation: fadeOut 1s forwards;
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+    </style>
+
+</body>
+
+</html>
