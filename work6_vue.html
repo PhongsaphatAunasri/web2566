@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Work6 VueJS</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
+        integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div id="app">
+        <v-app>
+            <v-container>
+                <v-card>
+                    <v-card-title class="bg-blue-grey">{{ title }}</v-card-title>
+                    <v-card-actions>
+                        <template v-if="user">
+                            <div class="pa-2">
+                                <v-avatar><img :src="user.photoURL" /></v-avatar>
+                            </div>
+                            <div class="pa-2">
+                                {{user.displayName}}<br />
+                                {{user.email}}<br />
+                                <div>{{ustudent}}</div>
+                            </div>
+                        </template>
+                        <v-btn @click="google_login()" v-if="!user"> Login</v-btn>
+                        <v-btn @click="google_logout()" v-if="user"> Logout</v-btn>
+                    </v-card-actions>
+                    <v-card-text class="pa-6">
+                        <table width="100%">
+                            <thead>
+                                <tr>
+                                    <td>รหัส</td>
+                                    <td>คำนำหน้า</td>
+                                    <td>ชื่อ</td>
+                                    <td>สกุล</td>
+                                    <td>Email</td>
+                                    <td>โทรศัพท์</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(s) in students">
+                                    <td>{{ s.id }}</td>
+                                    <td>{{ s.title }}</td>
+                                    <td>{{ s.fname }}</td>
+                                    <td>{{ s.lname }}</td>
+                                    <td>{{ s.email }}</td>
+                                    <td>{{ s.phone }}</td>
+                                    <td>
+                                        <v-btn @click="edit(s)"><v-icon icon="mdi-account-edit"></v-icon></v-btn>
+                                        <v-btn @click="deleteData(s)"><v-icon
+                                                icon="mdi-account-remove"></v-icon></v-btn>
+                                    </td>
+
+                                </tr>
+                            </tbody>
+                        </table>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-btn @click="readData()">Read Data (get)</v-btn>
+                        <v-btn @click="autoRead()">Auto Read (onSnapshot)</v-btn>
+                        <v-btn @click="addData()">Add Data</v-btn>
+                    </v-card-actions>
+                </v-card>
+
+                <v-card v-if="editmode">
+                    <v-card-text class="pa-6">
+                        <v-card-title class="bg-blue-grey">{{ editmode }}</v-card-title>
+                        <v-text-field v-model="editstd.id" label="รหัส"></v-text-field>
+                        <v-combobox v-model="editstd.title" label="คำนำหน้า"
+                            :items="['นาย', 'นางสาว', 'ด.ช.', 'ด.ญ', 'นาง']"></v-combobox>
+                        <v-text-field v-model="editstd.fname" label="ชื่อ"></v-text-field>
+                        <v-text-field v-model="editstd.lname" label="นามสกุล"></v-text-field>
+                        <v-text-field v-model="editstd.email" label="E-mail"></v-text-field>
+                        <v-text-field v-model="editstd.phone" label="โทรศัพท์"></v-text-field>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-btn @click="savedata()">Save</v-btn>
+                        <v-btn @click="editmode = 0">Cancel</v-btn>
+                    </v-card-actions>
+                </v-card>
+
+                <div class="pa-6 text-center">{{ footer }}</div>
+            </v-container>
+        </v-app>
+    </div>
+
+    <script>
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZn7p3WwxlqRZIEZF4Uzu49OrFlq8Gakw",
+            authDomain: "web2566-c7291.firebaseapp.com",
+            projectId: "web2566-c7291",
+            storageBucket: "web2566-c7291.appspot.com",
+            messagingSenderId: "647238653303",
+            appId: "1:647238653303:web:58f2518331c9621f043d72",
+            measurementId: "G-9F4GHZ2GH4"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        const vuetify = Vuetify.createVuetify();
+        const app = Vue.createApp({
+            data() {
+                return {
+                    title: "Work 6:  เรียกใช้ฐานข้อมูล Firebase ด้วย VueJS",
+                    footer: "พงศพัศ อุณาศรี 643020627-4 CS",
+                    students: [],
+                    editstd: {},
+                    editmode: 0,
+                    user: null,  // เพิ่มตัวแปร user=null คือยังไม่ login
+                    ustudent: null,
+                };
+            },
+            mounted() {
+                const auth = firebase.auth();
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        this.user = user.toJSON();
+                        this.getstudent(user.email);  // เรียก getstudent เพื่อดึงข้อมูล ustudent
+                    } else {
+                        this.user = null;
+                    }
+                });
+            },
+
+            methods: {
+                getstudent(email) {
+                    db.collection("students")
+                        .where("email", "==", email)
+                        .limit(1)
+                        .get()
+                        .then(
+                            (querySnapshot) => {
+                                querySnapshot.forEach((doc) => {
+                                    this.ustudent = { id: doc.id, ...doc.data() };
+                                });
+                            }
+                        );
+                },
+
+                readData() {
+                    db.collection("students")
+                        .get()
+                        .then((querySnapshot) => {
+                            var stdlist = [];
+                            querySnapshot.forEach((doc) => {
+                                stdlist.push({ id: doc.id, ...doc.data() });
+                            });
+                            this.students = stdlist;
+                        });
+                },
+                autoRead() {
+                    db.collection("students").onSnapshot((querySnapshot) => {
+                        var stdlist = [];
+                        querySnapshot.forEach((doc) => {
+                            stdlist.push({ id: doc.id, ...doc.data() });
+                        });
+                        this.students = stdlist;
+                    });
+                },
+                edit(std) {
+                    this.editstd = { ...std }; // คัดลอกค่า std ลงใน editstd
+                    this.editmode = "edit";
+                },
+                savedata() {
+                    db.collection("students").doc(this.editstd.id).set(this.editstd);
+                    this.editmode = 0; // รีเซ็ต editmode เมื่อบันทึกข้อมูล
+                },
+                deleteData(std) {
+                    if (confirm("ต้องการลบข้อมูล")) {
+                        db.collection("students").doc(std.id).delete();
+                    }
+                },
+                addData() {
+                    this.editmode = "เพิ่มนักเรียน";
+                    this.editstd = {};
+                },
+                google_login() {
+                    if (firebase.auth) {
+                        const provider = new firebase.auth.GoogleAuthProvider();
+                        provider.addScope("profile");
+                        provider.addScope("email");
+                        firebase.auth().signInWithPopup(provider)
+                            .then((result) => {
+                                const user = result.user;
+                                this.user = user.toJSON();
+                                this.getstudent(user.email);  // เรียก getstudent เพื่อดึงข้อมูล ustudent
+                            })
+                            .catch((error) => {
+                                console.error(error.message);
+                            });
+                    } else {
+                        console.error('Firebase auth object is not available.');
+                    }
+                },
+
+                google_logout() {
+                    if (confirm("Are you sure?")) {
+                        firebase.auth().signOut();
+                    }
+                }
+            },
+        });
+
+        app.use(vuetify).mount("#app");
+    </script>
+</body>
+
+</html>
